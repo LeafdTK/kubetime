@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "kubetime.fullname" . }}-web
+  name: kubetime-web
   labels:
     {{- include "kubetime.labels" . | nindent 4 }}
     app.kubernetes.io/component: web
@@ -55,17 +55,18 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
-            {{- range $key, $value := .Values.env }}
-            - name: {{ $key }}
-              value: {{ $value | quote }}
-            {{- end }}
             {{- if .Values.secrets.create }}
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "kubetime.fullname" . }}-secrets
+                  name: kubetime-secrets
                   key: {{ $key }}
+            {{- end }}
+            {{- else }}
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
             {{- end }}
             {{- end }}
       {{- with .Values.nodeSelector }}
