@@ -1,173 +1,174 @@
-name: CI
+# DISABLED - Replaced with Docker workflow
+# name: CI
 
-on:
-  pull_request:
-  push:
-    branches: [ main ]
+# on:
+#   pull_request:
+#   push:
+#     branches: [ main ]
 
-jobs:
-  scan_ruby:
-    runs-on: ubuntu-latest
+# jobs:
+#   scan_ruby:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v5
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+#       - name: Set up Ruby
+#         uses: ruby/setup-ruby@v1
+#         with:
+#           ruby-version: .ruby-version
+#           bundler-cache: true
 
-      - name: Scan for common Rails security vulnerabilities using static analysis
-        run: bin/brakeman --no-pager
+#       - name: Scan for common Rails security vulnerabilities using static analysis
+#         run: bin/brakeman --no-pager
 
-  scan_js:
-    runs-on: ubuntu-latest
+#   scan_js:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v5
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+#       - name: Set up Ruby
+#         uses: ruby/setup-ruby@v1
+#         with:
+#           ruby-version: .ruby-version
+#           bundler-cache: true
 
-      - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: bin/importmap audit
+#       - name: Scan for security vulnerabilities in JavaScript dependencies
+#         run: bin/importmap audit
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+#   lint:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v5
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+#       - name: Set up Ruby
+#         uses: ruby/setup-ruby@v1
+#         with:
+#           ruby-version: .ruby-version
+#           bundler-cache: true
 
-      - name: Lint code for consistent style
-        run: bin/rubocop -f github
+#       - name: Lint code for consistent style
+#         run: bin/rubocop -f github
 
-  zeitwerk:
-    runs-on: ubuntu-latest
+#   zeitwerk:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v5
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+#       - name: Set up Ruby
+#         uses: ruby/setup-ruby@v1
+#         with:
+#           ruby-version: .ruby-version
+#           bundler-cache: true
 
-      - name: Run Rails Zeitwerk check
-        run: bin/rails zeitwerk:check
+#       - name: Run Rails Zeitwerk check
+#         run: bin/rails zeitwerk:check
 
-  test:
-    runs-on: ubuntu-latest
+#   test:
+#     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        ports:
-          - 5432:5432
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
+#     services:
+#       postgres:
+#         image: postgres:16-alpine
+#         ports:
+#           - 5432:5432
+#         # needed because the postgres container does not provide a healthcheck
+#         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+#         env:
+#           POSTGRES_USER: postgres
+#           POSTGRES_PASSWORD: postgres
+#           POSTGRES_DB: test_db
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v5
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+#       - name: Set up Ruby
+#         uses: ruby/setup-ruby@v1
+#         with:
+#           ruby-version: .ruby-version
+#           bundler-cache: true
 
-      - name: Run tests
-        env:
-          RAILS_ENV: test
-          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: postgres
-        run: |
-          bin/rails db:create RAILS_ENV=test
-          bin/rails db:migrate RAILS_ENV=test
-          # Create additional test databases
-          psql -h localhost -U postgres -c "CREATE DATABASE test_wakatime;"
-          psql -h localhost -U postgres -c "CREATE DATABASE test_sailors_log;"
-          psql -h localhost -U postgres -c "CREATE DATABASE test_warehouse;"
-          bin/rails test
+#       - name: Run tests
+#         env:
+#           RAILS_ENV: test
+#           TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+#           PGHOST: localhost
+#           PGUSER: postgres
+#           PGPASSWORD: postgres
+#         run: |
+#           bin/rails db:create RAILS_ENV=test
+#           bin/rails db:migrate RAILS_ENV=test
+#           # Create additional test databases
+#           psql -h localhost -U postgres -c "CREATE DATABASE test_wakatime;"
+#           psql -h localhost -U postgres -c "CREATE DATABASE test_sailors_log;"
+#           psql -h localhost -U postgres -c "CREATE DATABASE test_warehouse;"
+#           bin/rails test
 
-      - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
+#       - name: Keep screenshots from failed system tests
+#         uses: actions/upload-artifact@v4
+#         if: failure()
+#         with:
+#           name: screenshots
+#           path: ${{ github.workspace }}/tmp/screenshots
+#           if-no-files-found: ignore
 
-  # test:
-  #   runs-on: ubuntu-latest
+#   # test:
+#   #   runs-on: ubuntu-latest
 
-  #   services:
-  #     postgres:
-  #       image: postgres:16-alpine
-  #       ports:
-  #         - 5432:5432
-  #       # needed because the postgres container does not provide a healthcheck
-  #       options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-  #       env:
-  #         POSTGRES_USER: postgres
-  #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: test_db
+#   #   services:
+#   #     postgres:
+#   #       image: postgres:16-alpine
+#   #       ports:
+#   #         - 5432:5432
+#   #       # needed because the postgres container does not provide a healthcheck
+#   #       options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+#   #       env:
+#   #         POSTGRES_USER: postgres
+#   #         POSTGRES_PASSWORD: postgres
+#   #         POSTGRES_DB: test_db
 
-  #   # services:
-  #   #  redis:
-  #   #    image: redis
-  #   #    ports:
-  #   #      - 6379:6379
-  #   #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-  #   steps:
-  #     - name: Install packages
-  #       run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git pkg-config google-chrome-stable
+#   #   # services:
+#   #   #  redis:
+#   #   #    image: redis
+#   #   #    ports:
+#   #   #      - 6379:6379
+#   #   #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+#   #   steps:
+#   #     - name: Install packages
+#   #       run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential git pkg-config google-chrome-stable
 
-  #     - name: Checkout code
-  #       uses: actions/checkout@v5
+#   #     - name: Checkout code
+#   #       uses: actions/checkout@v5
 
-  #     - name: Set up Ruby
-  #       uses: ruby/setup-ruby@v1
-  #       with:
-  #         ruby-version: .ruby-version
-  #         bundler-cache: true
+#   #     - name: Set up Ruby
+#   #       uses: ruby/setup-ruby@v1
+#   #       with:
+#   #         ruby-version: .ruby-version
+#   #         bundler-cache: true
 
-  #     - name: Run tests
-  #       env:
-  #         RAILS_ENV: test
-  #         # REDIS_URL: redis://localhost:6379/0
-  #         TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-  #         PGHOST: localhost
-  #         PGUSER: postgres
-  #         PGPASSWORD: postgres
-  #       run: |
-  #         bin/rails db:migrate RAILS_ENV=test
-  #         bin/rails test test:system
+#   #     - name: Run tests
+#   #       env:
+#   #         RAILS_ENV: test
+#   #         # REDIS_URL: redis://localhost:6379/0
+#   #         TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+#   #         PGHOST: localhost
+#   #         PGUSER: postgres
+#   #         PGPASSWORD: postgres
+#   #       run: |
+#   #         bin/rails db:migrate RAILS_ENV=test
+#   #         bin/rails test test:system
 
-  #     - name: Keep screenshots from failed system tests
-  #       uses: actions/upload-artifact@v4
-  #       if: failure()
-  #       with:
-  #         name: screenshots
-  #         path: ${{ github.workspace }}/tmp/screenshots
-  #         if-no-files-found: ignore
+#   #     - name: Keep screenshots from failed system tests
+#   #       uses: actions/upload-artifact@v4
+#   #       if: failure()
+#   #       with:
+#   #         name: screenshots
+#   #         path: ${{ github.workspace }}/tmp/screenshots
+#   #         if-no-files-found: ignore
