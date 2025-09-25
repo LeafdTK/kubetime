@@ -1,0 +1,170 @@
+# Default values for kubetime
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/hackclub/kubetime/hackatime
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+worker:
+  image:
+    repository: ghcr.io/hackclub/kubetime/hackatime-worker
+    pullPolicy: IfNotPresent
+    tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: kubetime.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: kubetime-tls
+  #    hosts:
+  #      - kubetime.local
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+worker:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Environment variables
+env:
+  # Database configuration
+  DATABASE_URL: ""
+  POOL_DATABASE_URL: ""
+  SAILORS_LOG_DATABASE_URL: ""
+  WAKATIME_DATABASE_URL: ""
+  WAREHOUSE_DATABASE_URL: ""
+  
+  # Encryption keys
+  ENCRYPTION_DETERMINISTIC_KEY: ""
+  ENCRYPTION_KEY_DERIVATION_SALT: ""
+  ENCRYPTION_PRIMARY_KEY: ""
+  SECRET_KEY_BASE: ""
+  PREFIXED_IDS_SALT: ""
+  
+  # Rails configuration
+  RAILS_MASTER_KEY: ""
+  RAILS_MAX_THREADS: "5"
+  RAILS_ENV: "production"
+  
+  # GitHub OAuth
+  GITHUB_CLIENT_ID: ""
+  GITHUB_CLIENT_SECRET: ""
+  
+  # Slack integration
+  SLACK_CLIENT_ID: ""
+  SLACK_CLIENT_SECRET: ""
+  SLACK_SIGNING_SECRET: ""
+  SLACK_USER_OAUTH_TOKEN: ""
+  SAILORS_LOG_SLACK_BOT_OAUTH_TOKEN: ""
+  SAILORS_LOG_SLACK_SIGNING_SECRET: ""
+  
+  # Airtable integration
+  ADDRESS_AIRTABLE_PAT: ""
+  LOOPS_AIRTABLE_PAT: ""
+  NEIGHBORHOOD_AIRTABLE_PAT: ""
+  
+  # External services
+  HACKCLUB_GEOCODER_API_KEY: ""
+  IPINFO_API_KEY: ""
+  LOOPS_API_KEY: ""
+  MAIL_HACKCLUB_TOKEN: ""
+  STATS_API_KEY: ""
+  TELETYPE_API_KEY: ""
+  
+  # Internal API
+  INTERNAL_API_KEYS: ""
+  
+  # Security
+  RACK_ATTACK_BYPASS: ""
+  
+  # Monitoring
+  SENTRY_DSN: ""
+  
+  # SMTP configuration
+  SMTP_ADDRESS: ""
+  SMTP_PASSWORD: ""
+  SMTP_PORT: "587"
+  SMTP_USER_NAME: ""
+  
+  # Application settings
+  WEB_CONCURRENCY: "10"
+
+# Secrets configuration
+secrets:
+  # Set to true to create secrets from the env values
+  create: true
+  # Additional secrets to include
+  additional: {}
+
+# ConfigMaps for non-sensitive configuration
+configMaps:
+  create: true
+  additional: {}

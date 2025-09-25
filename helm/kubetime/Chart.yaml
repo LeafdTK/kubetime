@@ -1,0 +1,17 @@
+apiVersion: v2
+name: kubetime
+description: A Helm chart for Hackatime - Hack Club's time tracking application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - hackclub
+  - kubetime
+  - time-tracking
+  - rails
+home: https://github.com/hackclub/kubetime
+sources:
+  - https://github.com/hackclub/kubetime
+maintainers:
+  - name: Hack Club
+    email: sebastian@hackclub.com

@@ -1,0 +1,96 @@
+name: Build and Push Helm Chart
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'helm/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'helm/**'
+
+env:
+  REGISTRY: ghcr.io
+  CHART_NAME: kubetime
+  ORGANIZATION: hackahelm
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'v3.12.0'
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Package Helm Chart
+        run: |
+          helm package ./helm/${{ env.CHART_NAME }} --destination ./packages
+
+      - name: Create Helm Chart Index
+        run: |
+          helm repo index ./packages --url https://${{ env.REGISTRY }}/${{ env.ORGANIZATION }}/${{ env.CHART_NAME }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Helm Chart to GitHub Packages
+        run: |
+          # Create OCI package from the chart
+          helm push ./packages/${{ env.CHART_NAME }}-*.tgz oci://${{ env.REGISTRY }}/${{ env.ORGANIZATION }}/${{ env.CHART_NAME }}
+          
+          # Also push the index file as a generic package
+          echo "Publishing Helm chart index to GitHub Packages..."
+          
+          # Upload the packaged chart as a release asset
+          CHART_FILE=$(ls ./packages/${{ env.CHART_NAME }}-*.tgz)
+          CHART_VERSION=$(helm show chart $CHART_FILE | grep '^version:' | awk '{print $2}')
+          
+          echo "Chart version: $CHART_VERSION"
+          echo "Chart file: $CHART_FILE"
+          
+          # Create a release with the chart
+          gh release create "v$CHART_VERSION" $CHART_FILE \
+            --title "Kubetime Helm Chart v$CHART_VERSION" \
+            --notes "Helm chart for Kubetime application" \
+            --repo ${{ github.repository }} \
+            --generate-notes || echo "Release may already exist"
+
+      - name: Update Chart Version
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Update the chart version in Chart.yaml
+          CURRENT_VERSION=$(grep '^version:' ./helm/${{ env.CHART_NAME }}/Chart.yaml | awk '{print $2}')
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+          
+          # Update Chart.yaml with new version
+          sed -i "s/^version: .*/version: $NEW_VERSION/" ./helm/${{ env.CHART_NAME }}/Chart.yaml
+          
+          # Commit and push the version update
+          git add ./helm/${{ env.CHART_NAME }}/Chart.yaml
+          git commit -m "Bump Helm chart version to $NEW_VERSION" || echo "No changes to commit"
+          git push || echo "Nothing to push"
+
+      - name: Upload Chart Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart
+          path: ./packages/
+          retention-days: 30
