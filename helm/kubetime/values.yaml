@@ -5,16 +5,16 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/hackclub/kubetime/hackatime
-  pullPolicy: IfNotPresent
+  repository: ghcr.io/leafdtk/kubetime/hackatime
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "latest"
 
 worker:
   image:
-    repository: ghcr.io/hackclub/kubetime/hackatime-worker
-    pullPolicy: IfNotPresent
-    tag: ""
+    repository: ghcr.io/leafdtk/kubetime/hackatime-worker
+    pullPolicy: Always
+    tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
